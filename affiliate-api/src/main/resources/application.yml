@@ -23,14 +23,24 @@ affiliate:
     api-key: ${OPENAI_API_KEY:}
     model-name: ${OPENAI_MODEL:gpt-4.1-mini}
     temperature: ${OPENAI_TEMPERATURE:0.2}
-  notion:
-    enabled: ${AFFILIATE_NOTION_ENABLED:false}
-    token: ${NOTION_TOKEN:}
-    timeout-seconds: ${NOTION_TIMEOUT_SECONDS:10}
-    databases:
-      products: ${NOTION_PRODUCT_DATABASE_ID:}
-      keywords: ${NOTION_KEYWORD_DATABASE_ID:}
-      opportunities: ${NOTION_OPPORTUNITY_DATABASE_ID:}
-      bridge-pages: ${NOTION_BRIDGE_PAGE_DATABASE_ID:}
-      pinterest-content: ${NOTION_PINTEREST_CONTENT_DATABASE_ID:}
 
+notion:
+  enabled: ${NOTION_ENABLED:false}
+  base-url: ${NOTION_BASE_URL:https://api.notion.com}
+  token: ${NOTION_TOKEN:}
+  api-version: ${NOTION_API_VERSION:2022-06-28}
+  parent-page-id: ${NOTION_PARENT_PAGE_ID:}
+  connect-timeout: 5s
+  read-timeout: 20s
+  max-retries: ${NOTION_MAX_RETRIES:3}
+  initialization:
+    enabled: ${NOTION_INITIALIZATION_ENABLED:false}
+    registry-path: ${NOTION_REGISTRY_PATH:.notion-databases.json}
+  databases:
+    keywords: ${NOTION_KEYWORDS_DATABASE_ID:}
+    affiliate-products: ${NOTION_PRODUCTS_DATABASE_ID:}
+    opportunities: ${NOTION_OPPORTUNITIES_DATABASE_ID:}
+    bridge-pages: ${NOTION_BRIDGE_PAGES_DATABASE_ID:}
+    pinterest-content: ${NOTION_PINTEREST_CONTENT_DATABASE_ID:}
+    product-snapshots: ${NOTION_PRODUCT_SNAPSHOTS_DATABASE_ID:}
+    campaign-metrics: ${NOTION_CAMPAIGN_METRICS_DATABASE_ID:}

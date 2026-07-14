@@ -12,6 +12,9 @@
     <name>Affiliate API</name>
     <dependencies>
         <dependency>
+            <groupId>com.aiaffiliate</groupId><artifactId>affiliate-application</artifactId><version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.aiaffiliate</groupId>
             <artifactId>affiliate-domain</artifactId>
             <version>${project.version}</version>
@@ -64,4 +67,3 @@
         </plugins>
     </build>
 </project>
-

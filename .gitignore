@@ -7,4 +7,4 @@ affiliate-web/dist/
 affiliate-web/.next/
 affiliate-web/.wrangler/
 .env
-
+.notion-databases.json

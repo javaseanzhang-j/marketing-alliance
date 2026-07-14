@@ -1,0 +1,7 @@
+package com.aiaffiliate.domain.model;
+
+/** 内容切入角度。 */
+public enum ContentAngle {
+    HOW_TO, LISTICLE, COMPARISON, REVIEW, BEFORE_AND_AFTER, CASE_STUDY, MISTAKES,
+    IDEAS_AND_INSPIRATION, COST_GUIDE, CHECKLIST, TEMPLATE, PROBLEM_SOLUTION, UNKNOWN
+}

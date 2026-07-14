@@ -1,0 +1,6 @@
+package com.aiaffiliate.infrastructure.notion.repository;
+import com.aiaffiliate.application.reference.*;import com.aiaffiliate.domain.model.*;import com.aiaffiliate.domain.port.*;import com.aiaffiliate.infrastructure.notion.mapper.BridgePageNotionMapper;import com.aiaffiliate.notion.client.NotionClient;import java.util.*;
+/** Notion Bridge Page Repository Adapter。 */
+public class NotionBridgePageRepository extends AbstractNotionRepository<BridgePage> implements BridgePageRepository{
+ public NotionBridgePageRepository(NotionClient c,BridgePageNotionMapper m,EntityReferenceRepository r,NotionDatabaseLocator l){super(c,m,r,l,"bridge-pages","Bridge Page ID");}
+ public BridgePage save(BridgePage v){return saveEntity(v);}public BridgePage update(BridgePage v){return updateEntity(v);}public Optional<BridgePage>findById(BridgePageId id){return findEntity(id.value());}public List<BridgePage>findAll(){return findAllEntities();}public List<BridgePage>findByStatus(BridgePageStatus s){return findAll().stream().filter(v->v.status()==s).toList();}public PageResult<BridgePage>findPage(PageRequest p){return page(p);}public List<BridgePage>findByOpportunityId(OpportunityId id){return findAll().stream().filter(v->v.opportunityId().equals(id)).toList();}public void archive(BridgePageId id){archiveEntity(id.value());}}

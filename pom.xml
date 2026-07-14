@@ -12,6 +12,7 @@
 
     <modules>
         <module>affiliate-domain</module>
+        <module>affiliate-application</module>
         <module>affiliate-notion-client</module>
         <module>affiliate-infrastructure</module>
         <module>affiliate-ai-agent</module>
@@ -78,4 +79,3 @@
         </pluginManagement>
     </build>
 </project>
-

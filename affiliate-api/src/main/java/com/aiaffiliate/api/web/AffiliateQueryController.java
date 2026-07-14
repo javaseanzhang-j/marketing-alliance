@@ -2,11 +2,11 @@ package com.aiaffiliate.api.web;
 
 import com.aiaffiliate.agent.KeywordAgent;
 import com.aiaffiliate.domain.model.Keyword;
-import com.aiaffiliate.domain.model.OpportunityScore;
-import com.aiaffiliate.domain.model.Product;
+import com.aiaffiliate.domain.model.AffiliateProduct;
+import com.aiaffiliate.domain.service.OpportunityScoringService;
 import com.aiaffiliate.domain.port.FiverrDataProvider;
 import com.aiaffiliate.domain.port.SEODataProvider;
-import com.aiaffiliate.notion.NotionClient;
+import com.aiaffiliate.notion.client.NotionClient;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -49,18 +48,16 @@ public class AffiliateQueryController {
 
     @GetMapping("/dashboard")
     public DashboardResponse dashboard() {
-        OpportunityScore leadingScore = OpportunityScore.calculate(
-                new BigDecimal("88"), new BigDecimal("76"),
-                new BigDecimal("91"), new BigDecimal("84"));
+        var leadingScore = new OpportunityScoringService().calculate(92, 88, 75, 90, 24, 84, 90);
         return new DashboardResponse(
-                247, 84, 18, 42, leadingScore.total(),
+                247, 84, 18, 42, leadingScore.score().value(),
                 Map.of("ai", keywordAgentProvider.getIfAvailable() != null,
                         "notion", notionClientProvider.getIfAvailable() != null),
                 Instant.now());
     }
 
     @GetMapping("/products")
-    public List<Product> products(
+    public List<AffiliateProduct> products(
             @RequestParam(defaultValue = "") String query,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit) {
         return fiverrDataProvider.searchProducts(query, limit);
@@ -87,7 +84,7 @@ public class AffiliateQueryController {
             long keywords,
             long highPotentialOpportunities,
             long contentDrafts,
-            BigDecimal leadingScore,
+            int leadingScore,
             Map<String, Boolean> integrations,
             Instant generatedAt) {
     }

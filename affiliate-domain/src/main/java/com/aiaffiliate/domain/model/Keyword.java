@@ -1,41 +1,35 @@
 package com.aiaffiliate.domain.model;
 
 import java.time.Instant;
-import java.util.Locale;
 import java.util.Objects;
-import java.util.UUID;
+import java.util.Set;
 
-/** 联盟营销关键词实体，包含可用于筛选和排序的 SEO 指标。 */
+/** 关键词聚合根。评分由 KeywordScoringService 计算后写入。 */
 public record Keyword(
-        UUID id,
-        String phrase,
-        KeywordIntent intent,
-        long monthlySearchVolume,
-        int difficulty,
-        String source,
-        KeywordStatus status,
-        Instant createdAt) {
+        KeywordId id, String value, String category, String subcategory, KeywordIntent intent,
+        Set<KeywordSource> sources, String language, Set<String> countries, Integer searchVolume,
+        Integer pinterestDemand, Integer commercialIntent, Integer competitionScore, Integer trendScore,
+        Integer keywordScore, KeywordStatus status, String notes, Instant createdAt, Instant updatedAt) {
 
     public Keyword {
         Objects.requireNonNull(id, "id must not be null");
-        phrase = requireText(phrase, "phrase").toLowerCase(Locale.ROOT);
-        Objects.requireNonNull(intent, "intent must not be null");
-        if (monthlySearchVolume < 0) {
-            throw new IllegalArgumentException("monthlySearchVolume must not be negative");
-        }
-        if (difficulty < 0 || difficulty > 100) {
-            throw new IllegalArgumentException("difficulty must be between 0 and 100");
-        }
-        source = requireText(source, "source");
-        Objects.requireNonNull(status, "status must not be null");
+        value = DomainRules.text(value, "value");
+        category = category == null ? "" : category.trim();
+        subcategory = subcategory == null ? "" : subcategory.trim();
+        intent = intent == null ? KeywordIntent.UNKNOWN : intent;
+        sources = DomainRules.immutableSet(sources);
+        language = language == null || language.isBlank() ? "en" : language.trim();
+        countries = DomainRules.immutableSet(countries);
+        if (searchVolume != null && searchVolume < 0) throw new IllegalArgumentException("searchVolume must not be negative");
+        DomainRules.optionalScore(pinterestDemand, "pinterestDemand");
+        DomainRules.optionalScore(commercialIntent, "commercialIntent");
+        DomainRules.optionalScore(competitionScore, "competitionScore");
+        DomainRules.optionalScore(trendScore, "trendScore");
+        DomainRules.optionalScore(keywordScore, "keywordScore");
+        status = status == null ? KeywordStatus.INBOX : status;
+        notes = notes == null ? "" : notes;
         Objects.requireNonNull(createdAt, "createdAt must not be null");
-    }
-
-    private static String requireText(String value, String field) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(field + " must not be blank");
-        }
-        return value.trim();
+        Objects.requireNonNull(updatedAt, "updatedAt must not be null");
+        if (updatedAt.isBefore(createdAt)) throw new IllegalArgumentException("updatedAt must not be before createdAt");
     }
 }
-

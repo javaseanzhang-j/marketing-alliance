@@ -1,38 +1,50 @@
 # AI 联盟营销智能平台
 
-这是一个面向 AI 辅助联盟营销研究和内容生产流程的企业级项目基础框架。第一阶段聚焦 Fiverr 联盟产品，支持分析联盟机会、生成 Bridge Page 方案以及制作 Pinterest 营销内容。Notion 作为规划中的业务数据存储；按照第一阶段要求，目前各外部数据提供器均使用可预测的 Mock 实现。
+AI Affiliate Intelligence Platform 是一个面向联盟营销选品、机会评估、桥接页生产与 Pinterest 内容运营的 Java 21 平台。MVP 使用 Notion 作为业务数据存储和人工运营后台，主链路为：
 
-## 已实现内容
+```text
+种子关键词 → 联盟产品 → 机会分析 → 桥接页 → Pinterest 内容
+```
 
-- 基于 Java 21 和 Spring Boot 3.5 的 REST API
-- 遵循 DDD 思想的领域模型，包含经过校验的不可变实体和值对象
-- LangChain4j `ChatModel` 配置、提示词模板及四个类型安全的 Agent Service
-- 支持查询数据库、创建页面和更新页面的 Notion HTTP Client
-- Fiverr、Pinterest 和 SEO 数据提供器接口及 Mock 实现
-- 基于 Next.js、TypeScript 和 Tailwind CSS 的响应式智能分析工作台
-- 默认无需任何密钥即可启动；AI 和 Notion 集成可按需启用
+## 已实现能力
 
-## 项目结构
+- 完整领域模型与强类型 ID，领域层不依赖 Spring、HTTP 或 Notion
+- 关键词、产品质量、机会优先级三套领域评分服务，统一使用 `0–100` 的 `Score` 值对象
+- 五类领域 Repository Port，以及基于 Notion 的 CRUD、归档、分页和业务条件查询适配器
+- Spring `RestClient` 实现的 Notion API 客户端，支持 Database、Page、分页查询、Block、Relation、Rollup 和 Formula
+- 声明式定义五个 Notion Database，并按“基础字段 → Relation → Rollup → Formula”顺序幂等初始化
+- Schema 差异检测：补充缺失字段和枚举项，保留用户字段，类型冲突不做破坏性修改
+- Status 创建失败时自动降级为 Select
+- 领域 ID 与 Notion Page ID 独立映射，避免基础设施标识进入领域模型
+- Rich Text 自动按 2,000 字符拆分，桥接页完整正文写入 Page Body Blocks
+- Pinterest Final URL 在 Java 应用层生成，保留已有参数并对 UTM 参数编码
+- 统一异常映射、429 `Retry-After`、5xx 指数退避、随机抖动和有限重试
+- Notion 管理接口和显式初始化命令；默认启动不会创建数据库
+- Fiverr、Pinterest、SEO Mock 数据提供器与 LangChain4j Agent 基础能力
+- Next.js 智能分析工作台
+
+## 模块结构
 
 ```text
 ai-affiliate-platform
+├── affiliate-domain          # 领域模型、评分规则和 Repository Port
+├── affiliate-application     # 应用服务、UTM、Notion 管理用例和实体引用抽象
+├── affiliate-notion-client   # Notion RestClient、DTO、Schema、重试和 Registry
+├── affiliate-infrastructure  # Notion Mapper、Repository Adapter、初始化器和数据提供器
+├── affiliate-ai-agent        # LangChain4j Agent 与提示词
 ├── affiliate-api             # Spring Boot 启动入口和 REST API
-├── affiliate-domain          # 领域模型和数据提供器端口
-├── affiliate-infrastructure  # Mock 数据提供器适配器
-├── affiliate-ai-agent        # LangChain4j Agent、提示词和 ChatModel 配置
-├── affiliate-notion-client   # Notion API 边界和 JDK HTTP 实现
-└── affiliate-web             # Next.js 智能分析工作台
+└── affiliate-web             # Next.js 工作台
 ```
 
-模块依赖统一指向领域层：基础设施模块和 AI 模块依赖领域模块，API 模块负责组合各个模块。领域模块不依赖 Spring、Notion 或 LangChain4j。
+依赖方向遵循六边形架构：Domain 位于中心，Application 编排用例，Notion Client 与 Infrastructure 实现外部适配，API 只调用应用或领域端口。
 
 ## 环境要求
 
 - JDK 21
 - Maven 3.8+
-- Node.js 22.13+ 和 npm
+- Node.js 22.13+（仅 Web）
 
-## 启动后端
+## 构建与启动
 
 ```bash
 cp .env.example .env
@@ -40,17 +52,45 @@ mvn clean verify
 mvn -pl affiliate-api -am spring-boot:run
 ```
 
-API 默认运行在 `http://localhost:8080`。常用接口如下：
+后端默认运行在 `http://localhost:8080`。Notion 和 AI 默认关闭，因此本地构建不需要任何外部密钥，也不会产生外部请求。
+
+常用接口：
 
 - `GET /actuator/health`
 - `GET /api/v1/dashboard`
 - `GET /api/v1/products?query=seo&limit=20`
 - `GET /api/v1/keywords?seed=wordpress&limit=20`
-- `POST /api/v1/agents/keywords:discover`
+- `GET /api/admin/notion/schema`
+- `POST /api/admin/notion/initialize`
 
-AI 和 Notion 默认关闭，因此应用无需配置密钥即可启动。如需启用集成，请根据 `.env.example` 配置环境变量，并将对应的 `*_ENABLED` 开关设置为 `true`。
+## Notion 配置与初始化
 
-## 启动 Web 工作台
+先创建 Notion Integration，把目标父页面共享给该 Integration，然后设置：
+
+```bash
+export NOTION_ENABLED=true
+export NOTION_TOKEN='secret_xxx'
+export NOTION_PARENT_PAGE_ID='xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+export NOTION_API_VERSION='2022-06-28'
+```
+
+首次初始化可任选一种方式：
+
+```bash
+# 仅本次启动执行
+mvn -pl affiliate-api -am spring-boot:run \
+  -Dspring-boot.run.arguments=--initialize-notion
+
+# 或通过配置开启
+export NOTION_INITIALIZATION_ENABLED=true
+mvn -pl affiliate-api -am spring-boot:run
+```
+
+初始化器会按顺序创建 `Keywords`、`Affiliate Products`、`Opportunities`、`Bridge Pages`、`Pinterest Content`，并把生成的 ID 写入 `.notion-databases.json`。该文件已加入 `.gitignore`，程序不会修改 `.env`。已有 Database ID 也可通过 `NOTION_*_DATABASE_ID` 环境变量提供。
+
+初始化结束后应将 `NOTION_INITIALIZATION_ENABLED` 恢复为 `false`。重复执行是幂等的，但默认关闭能避免每次启动都访问远程 Schema。详细字段与关系见 [Notion 数据库设计](docs/notion-databases.md)。
+
+## Web 工作台
 
 ```bash
 cd affiliate-web
@@ -58,43 +98,12 @@ npm install
 npm run dev
 ```
 
-需要时，也可以让 Web 模块参与 Maven 构建生命周期：
+如需让 Web 参与 Maven 生命周期：
 
 ```bash
 mvn -Pweb-build verify
 ```
 
-## AI Agent 框架
+## 当前边界
 
-`AiAgentConfiguration` 负责创建一个 OpenAI `ChatModel` 和四个 LangChain4j AI Service：
-
-- `KeywordAgent`：发现并分析联盟营销关键词
-- `ProductAnalyzerAgent`：分析产品价值和推广潜力
-- `BridgePageGeneratorAgent`：生成 Bridge Page 内容方案
-- `PinterestContentAgent`：生成 Pinterest 营销内容
-
-所有提示词模板统一维护在 `PromptTemplates` 中，并要求 Agent 仅使用调用方提供的事实、明确标注假设，同时生成符合联盟营销规范的内容。只有在 `AFFILIATE_AI_ENABLED=true` 时才会创建 Agent Bean，从而避免测试或本地开发期间意外产生付费 API 调用。
-
-## Notion 配置
-
-创建五个 Notion Database，将它们共享给同一个 Notion Integration，然后配置对应的 Database ID。字段级数据库结构详见 [docs/notion-databases.md](docs/notion-databases.md)。
-
-`HttpNotionClient` 提供以下基础操作：
-
-- 查询 Database
-- 创建 Page
-- 更新 Page
-
-Notion 类型不会进入领域层，从而保持领域模型与存储技术解耦。
-
-## 第一阶段边界
-
-第一阶段不包含真实爬虫或非官方数据抓取。Mock 数据提供器保证整体架构可以运行、测试和替换。
-
-后续迭代建议依次实现：
-
-1. 应用层业务用例和 Notion Repository Adapter
-2. 联盟机会评分编排流程
-3. Bridge Page 与 Pinterest 内容审核命令
-4. Fiverr、SEO 和 Pinterest 官方数据源适配器
-5. 幂等数据同步与任务调度机制
+第一阶段不包含真实爬虫或非官方数据抓取。Fiverr、Pinterest 和 SEO 数据源仍是可替换的 Mock Adapter；`Product Snapshots` 与 `Campaign Metrics` 已预留配置，但不在本阶段自动创建。

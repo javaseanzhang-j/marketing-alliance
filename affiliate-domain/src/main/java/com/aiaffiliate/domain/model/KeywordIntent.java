@@ -4,6 +4,9 @@ package com.aiaffiliate.domain.model;
 public enum KeywordIntent {
     INFORMATIONAL,
     COMMERCIAL,
-    TRANSACTIONAL
+    TRANSACTIONAL,
+    COMPARISON,
+    PROBLEM_SOLVING,
+    INSPIRATIONAL,
+    UNKNOWN
 }
-

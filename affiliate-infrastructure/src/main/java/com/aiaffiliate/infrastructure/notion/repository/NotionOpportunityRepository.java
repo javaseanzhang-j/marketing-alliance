@@ -1,0 +1,6 @@
+package com.aiaffiliate.infrastructure.notion.repository;
+import com.aiaffiliate.application.reference.*;import com.aiaffiliate.domain.model.*;import com.aiaffiliate.domain.port.*;import com.aiaffiliate.infrastructure.notion.mapper.OpportunityNotionMapper;import com.aiaffiliate.notion.client.NotionClient;import java.util.*;
+/** Notion 机会 Repository Adapter。 */
+public class NotionOpportunityRepository extends AbstractNotionRepository<Opportunity> implements OpportunityRepository{
+ public NotionOpportunityRepository(NotionClient c,OpportunityNotionMapper m,EntityReferenceRepository r,NotionDatabaseLocator l){super(c,m,r,l,"opportunities","Opportunity ID");}
+ public Opportunity save(Opportunity v){return saveEntity(v);}public Opportunity update(Opportunity v){return updateEntity(v);}public Optional<Opportunity>findById(OpportunityId id){return findEntity(id.value());}public List<Opportunity>findAll(){return findAllEntities();}public List<Opportunity>findByStatus(OpportunityStatus s){return findAll().stream().filter(v->v.status()==s).toList();}public PageResult<Opportunity>findPage(PageRequest p){return page(p);}public List<Opportunity>findByPriorityAndChannel(OpportunityPriority p,MarketingChannel c){return findAll().stream().filter(v->v.priority()==p&&v.channel()==c).toList();}public void archive(OpportunityId id){archiveEntity(id.value());}}

@@ -1,0 +1,6 @@
+package com.aiaffiliate.infrastructure.notion.repository;
+import com.aiaffiliate.application.reference.*;import com.aiaffiliate.domain.model.*;import com.aiaffiliate.domain.port.*;import com.aiaffiliate.infrastructure.notion.mapper.KeywordNotionMapper;import com.aiaffiliate.notion.client.NotionClient;import java.util.*;
+/** Notion 关键词 Repository Adapter。 */
+public class NotionKeywordRepository extends AbstractNotionRepository<Keyword> implements KeywordRepository{
+ public NotionKeywordRepository(NotionClient c,KeywordNotionMapper m,EntityReferenceRepository r,NotionDatabaseLocator l){super(c,m,r,l,"keywords","Keyword ID");}
+ public Keyword save(Keyword v){return saveEntity(v);}public Keyword update(Keyword v){return updateEntity(v);}public Optional<Keyword>findById(KeywordId id){return findEntity(id.value());}public List<Keyword>findAll(){return findAllEntities();}public List<Keyword>findByStatus(KeywordStatus s){return findAll().stream().filter(v->v.status()==s).toList();}public PageResult<Keyword>findPage(PageRequest p){return page(p);}public List<Keyword>findByCategoryAndIntent(String c,KeywordIntent i){return findAll().stream().filter(v->v.category().equalsIgnoreCase(c)&&v.intent()==i).toList();}public void archive(KeywordId id){archiveEntity(id.value());}}
