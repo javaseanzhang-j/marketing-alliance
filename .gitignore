@@ -1,0 +1,10 @@
+.idea/
+.vscode/
+.DS_Store
+**/target/
+affiliate-web/node_modules/
+affiliate-web/dist/
+affiliate-web/.next/
+affiliate-web/.wrangler/
+.env
+

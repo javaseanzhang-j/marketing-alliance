@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: ai-affiliate-platform
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+affiliate:
+  ai:
+    enabled: ${AFFILIATE_AI_ENABLED:false}
+    api-key: ${OPENAI_API_KEY:}
+    model-name: ${OPENAI_MODEL:gpt-4.1-mini}
+    temperature: ${OPENAI_TEMPERATURE:0.2}
+  notion:
+    enabled: ${AFFILIATE_NOTION_ENABLED:false}
+    token: ${NOTION_TOKEN:}
+    timeout-seconds: ${NOTION_TIMEOUT_SECONDS:10}
+    databases:
+      products: ${NOTION_PRODUCT_DATABASE_ID:}
+      keywords: ${NOTION_KEYWORD_DATABASE_ID:}
+      opportunities: ${NOTION_OPPORTUNITY_DATABASE_ID:}
+      bridge-pages: ${NOTION_BRIDGE_PAGE_DATABASE_ID:}
+      pinterest-content: ${NOTION_PINTEREST_CONTENT_DATABASE_ID:}
+
